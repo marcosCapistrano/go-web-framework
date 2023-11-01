@@ -1,0 +1,9 @@
+{
+    "logging" : {
+        "level": "debug"
+    },
+
+    "templates": {
+        "path": "placeholder/*.html"
+    }
+}
