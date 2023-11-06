@@ -1,14 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	"platform/config"
+	"platform/http"
 	"platform/logging"
-	"platform/templates"
+	"platform/pipeline"
+	"platform/pipeline/basic"
+	"platform/placeholder"
 )
 
-type HTMLHandler struct {
+/* type HTMLHandler struct {
 	templateExecutor *templates.TemplateExecutor
 }
 
@@ -22,33 +23,25 @@ func (handler *HTMLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			handler.templateExecutor.ExecTemplate(w, "about.html", nil)
 		}
 	}
-}
+} */
 
 func main() {
-	/* Load config */
 	cfg, err := config.Load("config.json")
 	if err != nil {
 		panic(err)
 	}
-	/* --------- */
 
 	logger := logging.NewDefaultLogger(cfg)
+	pipeline := createPipeline(cfg, logger)
 
-	templateExecutor, err := templates.NewTemplateExecutor(cfg, logger)
-	if err != nil {
-		logger.Panicf("cannot create template executor: %s\n", err.Error())
-	}
+	http.Serve(pipeline, cfg, logger).Wait()
+}
 
-	htmlHandler := &HTMLHandler{
-		templateExecutor: templateExecutor,
-	}
-
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.Handle("/", htmlHandler)
-
-	err = http.ListenAndServe(":3001", nil)
-	if err != nil {
-		fmt.Printf("error listening and serving: %s\n", err.Error())
-	}
+func createPipeline(config config.Configuration, logger logging.Logger) pipeline.RequestPipeline {
+	return pipeline.CreatePipeline(
+		&basic.LoggingComponent{Logger: logger},
+		&basic.ErrorComponent{Logger: logger},
+		&basic.StaticFileComponent{Config: config},
+		&placeholder.SimpleMessageComponent{Config: config},
+	)
 }
