@@ -1,24 +1,22 @@
 package placeholder
 
 import (
-	"errors"
-	"io"
 	"platform/config"
 	"platform/pipeline"
+	"platform/templates"
 )
 
 type SimpleMessageComponent struct {
-	Config config.Configuration
+	Config           config.Configuration
+	TemplateExecutor *templates.TemplateExecutor
 }
 
 func (c *SimpleMessageComponent) Init() {}
-func (c *SimpleMessageComponent) ProcessRequest(ctx *pipeline.ComponentContext,
-	next func(*pipeline.ComponentContext)) {
-	msg, ok := c.Config.GetString("main:message")
-	if ok {
-		io.WriteString(ctx.ResponseWriter, msg)
+func (c *SimpleMessageComponent) ProcessRequest(ctx *pipeline.ComponentContext, next func(*pipeline.ComponentContext)) {
+	err := c.TemplateExecutor.ExecTemplate(ctx.ResponseWriter, "index.html", nil)
+	if err != nil {
+		ctx.Error(err)
 	} else {
-		ctx.Error(errors.New("cannot find config setting"))
+		next(ctx)
 	}
-	next(ctx)
 }

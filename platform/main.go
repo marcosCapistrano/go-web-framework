@@ -6,7 +6,7 @@ import (
 	"platform/logging"
 	"platform/pipeline"
 	"platform/pipeline/basic"
-	"platform/placeholder"
+	"platform/templates"
 )
 
 /* type HTMLHandler struct {
@@ -32,16 +32,22 @@ func main() {
 	}
 
 	logger := logging.NewDefaultLogger(cfg)
-	pipeline := createPipeline(cfg, logger)
+	executor, err := templates.NewTemplateExecutor(cfg, logger)
+	if err != nil {
+		panic(err)
+	}
+
+	pipeline := createPipeline(cfg, logger, executor)
 
 	http.Serve(pipeline, cfg, logger).Wait()
 }
 
-func createPipeline(config config.Configuration, logger logging.Logger) pipeline.RequestPipeline {
+func createPipeline(config config.Configuration, logger logging.Logger, executor *templates.TemplateExecutor) pipeline.RequestPipeline {
 	return pipeline.CreatePipeline(
 		&basic.LoggingComponent{Logger: logger},
 		&basic.ErrorComponent{Logger: logger},
 		&basic.StaticFileComponent{Config: config},
-		&placeholder.SimpleMessageComponent{Config: config},
+		&basic.RouterComponent{Logger: logger},
+		/* 		&placeholder.SimpleMessageComponent{Config: config, TemplateExecutor: executor}, */
 	)
 }
