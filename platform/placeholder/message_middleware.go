@@ -1,22 +1,35 @@
 package placeholder
 
 import (
-	"platform/config"
-	"platform/pipeline"
-	"platform/templates"
+    //"io"
+    //"errors"
+    "platform/pipeline"
+    "platform/config"
+    //"platform/services"
+    "platform/templates"
 )
 
 type SimpleMessageComponent struct {
-	Config           config.Configuration
-	TemplateExecutor *templates.TemplateExecutor
+    Message string
+    config.Configuration
 }
 
-func (c *SimpleMessageComponent) Init() {}
-func (c *SimpleMessageComponent) ProcessRequest(ctx *pipeline.ComponentContext, next func(*pipeline.ComponentContext)) {
-	err := c.TemplateExecutor.ExecTemplate(ctx.ResponseWriter, "index.html", nil)
-	if err != nil {
-		ctx.Error(err)
-	} else {
-		next(ctx)
-	}
+func (lc *SimpleMessageComponent) ImplementsProcessRequestWithServices() {}
+
+func (c *SimpleMessageComponent) Init() {
+    c.Message = c.Configuration.GetStringDefault("main:message",  
+        "Default Message") 
+}
+
+func (c *SimpleMessageComponent) ProcessRequestWithServices(
+    ctx *pipeline.ComponentContext, 
+    next func(*pipeline.ComponentContext), 
+    executor templates.TemplateExecutor)  {
+    err := executor.ExecTemplate(ctx.ResponseWriter, 
+        "simple_message.html", c.Message)
+    if (err != nil) {
+        ctx.Error(err)
+    } else {
+        next(ctx)
+    }
 }

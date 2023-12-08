@@ -1,0 +1,12 @@
+{
+    "logging": {
+        "level": "debug"
+    },
+    "files": {
+        "path": "files"
+    },
+    "templates": {
+        "path": "templates/*.html",
+        "reload": true
+    }
+}

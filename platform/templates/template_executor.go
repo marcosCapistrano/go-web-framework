@@ -1,37 +1,14 @@
 package templates
 
-import (
-	"errors"
-	"html/template"
-	"io"
-	"platform/config"
-	"platform/logging"
-)
+import "io"
 
-type TemplateExecutor struct {
-	templates *template.Template
+type TemplateExecutor interface {
+
+    ExecTemplate(writer io.Writer, name string, data interface{}) (err error) 
+
+    ExecTemplateWithFunc(writer io.Writer, name string, 
+        data interface{}, handlerFunc InvokeHandlerFunc) (err error) 
 }
 
-func NewTemplateExecutor(config config.Configuration, logger logging.Logger) (*TemplateExecutor, error) {
-	path, ok := config.GetString("templates:path")
-	if !ok {
-		return nil, errors.New("cannot load template config")
-	}
-
-	templates, err := template.ParseGlob(path)
-	if err != nil {
-		return nil, err
-	}
-
-	executor := &TemplateExecutor{
-		templates: templates,
-	}
-
-	return executor, nil
-}
-
-func (executor *TemplateExecutor) ExecTemplate(writer io.Writer, name string, data interface{}) (err error) {
-	err = executor.templates.ExecuteTemplate(writer, name, data)
-
-	return
-}
+type InvokeHandlerFunc func(handlerName string, methodName string, 
+    args ...interface{}) interface{}

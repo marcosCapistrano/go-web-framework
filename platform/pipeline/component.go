@@ -1,6 +1,8 @@
 package pipeline
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type ComponentContext struct {
 	*http.Request
@@ -16,11 +18,12 @@ func (mwc *ComponentContext) GetError() error {
 	return mwc.error
 }
 
-/*
-Init performs any one-off setup needed.
-ProcessRequest processes http requests
-*/
 type MiddlewareComponent interface {
 	Init()
 	ProcessRequest(context *ComponentContext, next func(*ComponentContext))
+}
+
+type ServicesMiddlwareComponent interface {
+	Init()
+	ImplementsProcessRequestWithServices()
 }
